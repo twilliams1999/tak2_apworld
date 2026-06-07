@@ -1,5 +1,5 @@
-from test.TestBase import WorldTestBase
+from test.bases import WorldTestBase
 
 
-class BfBBTestBase(WorldTestBase):
+class Tak2SoDTestBase(WorldTestBase):
     game = "Tak 2 Staff of Dreams"

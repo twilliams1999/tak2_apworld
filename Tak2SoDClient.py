@@ -179,51 +179,51 @@ class Tak2SoDContext(CommonContext):
                             await check_death(ctx)
                         await force_death(ctx)
 
-                else:
-                    if not ctx.auth:
-                        ctx.auth = dolphin_memory_engine.read_bytes(SLOT_NAME_ADDR, 0x40).decode('utf-8').strip(
-                            '\0')
-                        if ctx.auth == '\x02\x00\x00\x00\x04\x00\x00\x00\x02\x00\x00\x00\x04\x00\x00\x00\x02\x00\x00' \
-                                       '\x00\x02\x00\x00\x00\x04\x00\x00\x00\x04':
-                            logger.info("Vanilla game detected. Please load the patched game.")
-                            ctx.dolphin_status = CONNECTION_REFUSED_GAME_STATUS
-                            ctx.awaiting_rom = False
-                            dolphin_memory_engine.un_hook()
-                            await ctx.disconnect()
-                            await asyncio.sleep(5)
-                    if ctx.awaiting_rom:
-                        await ctx.server_auth()
-                await asyncio.sleep(.5)
-            else:
-                if ctx.dolphin_status == CONNECTION_CONNECTED_STATUS:
-                    logger.info("Connection to Dolphin lost, reconnecting...")
-                    ctx.dolphin_status = CONNECTION_LOST_STATUS
-                logger.info("Connection to Dolphin lost, reconnecting...")
-                dolphin_memory_engine.hook()
-                if dolphin_memory_engine.is_hooked():
-                    if dolphin_memory_engine.read_bytes(0x80000000, 6) == b'GIHE78':
-                        logger.info(CONNECTION_CONNECTED_STATUS)
-                        ctx.dolphin_status = CONNECTION_CONNECTED_STATUS
-                        ctx.locations_checked = set()
                     else:
-                        logger.info(CONNECTION_REFUSED_GAME_STATUS)
-                        ctx.dolphin_status = CONNECTION_REFUSED_GAME_STATUS
-                        dolphin_memory_engine.un_hook()
-                        await asyncio.sleep(1)
+                        if not ctx.auth:
+                            ctx.auth = dolphin_memory_engine.read_bytes(SLOT_NAME_ADDR, 0x40).decode('utf-8').strip(
+                                '\0')
+                            if ctx.auth == '\x02\x00\x00\x00\x04\x00\x00\x00\x02\x00\x00\x00\x04\x00\x00\x00\x02\x00\x00' \
+                                       '\x00\x02\x00\x00\x00\x04\x00\x00\x00\x04':
+                                logger.info("Vanilla game detected. Please load the patched game.")
+                                ctx.dolphin_status = CONNECTION_REFUSED_GAME_STATUS
+                                ctx.awaiting_rom = False
+                                dolphin_memory_engine.un_hook()
+                                await ctx.disconnect()
+                                await asyncio.sleep(5)
+                        if ctx.awaiting_rom:
+                            await ctx.server_auth()
+                    await asyncio.sleep(.5)
                 else:
-                    logger.info("Connection to Dolphin failed, attempting again in 5 seconds...")
-                    ctx.dolphin_status = CONNECTION_LOST_STATUS
-                    await ctx.disconnect()
-                    await asyncio.sleep(5)
-                    continue
-        except Exception:
-            dolphin_memory_engine.un_hook()
-            logger.info("Connection to Dolphin failed, attempting again in 5 seconds...")
-            logger.error(traceback.format_exc())
-            ctx.dolphin_status = CONNECTION_LOST_STATUS
-            await ctx.disconnect()
-            await asyncio.sleep(5)
-            continue
+                    if ctx.dolphin_status == CONNECTION_CONNECTED_STATUS:
+                        logger.info("Connection to Dolphin lost, reconnecting...")
+                        ctx.dolphin_status = CONNECTION_LOST_STATUS
+                    logger.info("Connection to Dolphin lost, reconnecting...")
+                    dolphin_memory_engine.hook()
+                    if dolphin_memory_engine.is_hooked():
+                        if dolphin_memory_engine.read_bytes(0x80000000, 6) == b'GIHE78':
+                            logger.info(CONNECTION_CONNECTED_STATUS)
+                            ctx.dolphin_status = CONNECTION_CONNECTED_STATUS
+                            ctx.locations_checked = set()
+                        else:
+                            logger.info(CONNECTION_REFUSED_GAME_STATUS)
+                            ctx.dolphin_status = CONNECTION_REFUSED_GAME_STATUS
+                            dolphin_memory_engine.un_hook()
+                            await asyncio.sleep(1)
+                    else:
+                        logger.info("Connection to Dolphin failed, attempting again in 5 seconds...")
+                        ctx.dolphin_status = CONNECTION_LOST_STATUS
+                        await ctx.disconnect()
+                        await asyncio.sleep(5)
+                        continue
+            except Exception:
+                dolphin_memory_engine.un_hook()
+                logger.info("Connection to Dolphin failed, attempting again in 5 seconds...")
+                logger.error(traceback.format_exc())
+                ctx.dolphin_status = CONNECTION_LOST_STATUS
+                await ctx.disconnect()
+                await asyncio.sleep(5)
+                continue
 
 
 async def patch_and_run_game(ctx: Tak2SoDContext, patch_file):
@@ -248,10 +248,10 @@ async def patch_and_run_game(ctx: Tak2SoDContext, patch_file):
                 opener = "open" if sys.platform == "darwin" else "xdg-open"
                 subprocess.call([opener, result_path])
             
-        except Exception as msg:
-            logger.info(msg, extra={'compact_gui': True})
-            logger.debug(traceback.format_exc())
-            ctx.gui_error('Error',msg)
+    except Exception as msg:
+        logger.info(msg, extra={'compact_gui': True})
+        logger.debug(traceback.format_exc())
+        ctx.gui_error('Error',msg)
     
 def main(connect=None, password=None, patch_file=None):
     # Text Mode to use !hint and such with games that no text entry
@@ -271,7 +271,7 @@ def main(connect=None, password=None, patch_file=None):
                 logger.info("apTak2SoD file supplied, beginning patching process...")
                 ctx.patch_task = asyncio.create_task(patch_and_run_game(ctx, patch_file), name="PatchGame")
             elif ext == Tak2SoDContainer.result_file_ending:
-                if sys.platform == "win32"
+                if sys.platform == "win32":
                     os.startfile(patch_file)
                 else:
                     opener = "open" if sys.platform == "darwin" else "xdg-open"
